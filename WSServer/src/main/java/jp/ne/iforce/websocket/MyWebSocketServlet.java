@@ -25,7 +25,7 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	class MyWebSocket implements WebSocket.OnTextMessage {
 
 		private final Integer IDLE_TIME = 60 * 60 * 1000;	//Connection有効時間（1h）
-		private final Integer MAX_TEXTSIZE = 2048;	//Connection有効時間（1h）
+		private final Integer MAX_TEXTSIZE = 2048;	//メッセージ最大文字数
 		private Connection myConnection;
 
 		public Connection getMyConnection() {
