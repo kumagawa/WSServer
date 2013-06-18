@@ -1,79 +1,60 @@
 package jp.ne.iforce.websocket;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MyWebSocketServlet extends WebSocketServlet {
 
-	//クライアント接続リスト
-	private static ConcurrentLinkedQueue<MyWebSocket> socketQueue = new ConcurrentLinkedQueue<MyWebSocket>();
+	// クライアント接続リスト
+	private static Map<String, MyWebSocket> socketQueue = new HashMap<String, MyWebSocket>();
 	private static final long serialVersionUID = 1L;
 
-	private static Logger logger = LoggerFactory.getLogger(MyWebSocketServlet.class);
-
+	/**
+	 * Clientから接続時にCallbackされる
+	 */
 	@Override
-	public WebSocket doWebSocketConnect(HttpServletRequest hsr, String string) {
-		return new MyWebSocket();
+	public WebSocket doWebSocketConnect(HttpServletRequest request, String string) {
+		return new MyWebSocket(request.getSession().getId());
 	}
 
-	class MyWebSocket implements WebSocket.OnTextMessage {
+	/**
+	 * ConcurrentLinkedQueue getter
+	 * 
+	 * @return
+	 */
+	public static Map<String, MyWebSocket> getSocketQueue() {
+		return socketQueue;
+	}
 
-		private final Integer IDLE_TIME = 60 * 60 * 1000;	//Connection有効時間（1h）
-		private final Integer MAX_TEXTSIZE = 2048;	//メッセージ最大文字数
-		private Connection myConnection;
+	/**
+	 * ConcurrentLinkedQueue setter
+	 * 
+	 * @param socketQueue
+	 */
+	public static void setSocketQueue(Map<String, MyWebSocket> socketQueue) {
+		MyWebSocketServlet.socketQueue = socketQueue;
+	}
 
-		public Connection getMyConnection() {
-			return myConnection;
-		}
+	/**
+	 * ソケットリスト追加
+	 * 
+	 * @param myWebSocket
+	 */
+	public static void addSocketQueue(String key, MyWebSocket myWebSocket) {
+		MyWebSocketServlet.socketQueue.put(key, myWebSocket);
+	}
 
-		public void setMyConnection(Connection connection) {
-			connection.setMaxIdleTime(IDLE_TIME);
-			connection.setMaxTextMessageSize(MAX_TEXTSIZE);
-			this.myConnection = connection;
-		}
-
-		/**
-		 * 接続時CallBack
-		 */
-		@Override
-		public void onOpen(Connection connection) {
-			this.setMyConnection(connection);
-			socketQueue.add(this);			//接続をリストに追加
-			logger.info("open connection:"+socketQueue.size());
-		}
-
-		/**
-		 * 切断時CallBack
-		 */
-		@Override
-		public void onClose(int closeCode, String message) {
-			socketQueue.remove(this);		//接続をリストから削除
-			logger.info("close connection:"+socketQueue.size());
-		}
-
-		/**
-		 * メッセージ受信時
-		 */
-		@Override
-		public void onMessage(String data) {
-			logger.info("message:"+data);
-			for(MyWebSocket mws:socketQueue){
-				try {
-					mws.getMyConnection().sendMessage(data);	//メッセージ配信
-				} catch (IOException e) {
-					socketQueue.remove(mws);					//エラーの接続を削除
-					e.printStackTrace();
-				}
-
-			}
-		}
-
+	/**
+	 * ソケットリスト削除
+	 * 
+	 * @param myWebSocket
+	 */
+	public static void removeSocketQueue(String key) {
+		MyWebSocketServlet.socketQueue.remove(key);
 	}
 
 }
