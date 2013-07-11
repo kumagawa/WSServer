@@ -21,7 +21,14 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	@Override
 	public WebSocket doWebSocketConnect(HttpServletRequest request, String string) {
 		//return new MyWebSocket(request.getSession().getId());
-		return new MyWebSocket(RandomStringUtils.randomNumeric(4));
+		String session;
+		while(true){
+			session = RandomStringUtils.randomNumeric(4);
+			if (!MyWebSocketServlet.getSocketQueue().containsKey(session)) {
+				break;
+			}
+		}
+		return new MyWebSocket(session);
 	}
 
 	/**
