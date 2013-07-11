@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.RandomStringUtils;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketServlet;
 
@@ -18,7 +20,8 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	 */
 	@Override
 	public WebSocket doWebSocketConnect(HttpServletRequest request, String string) {
-		return new MyWebSocket(request.getSession().getId());
+		//return new MyWebSocket(request.getSession().getId());
+		return new MyWebSocket(RandomStringUtils.randomNumeric(4));
 	}
 
 	/**

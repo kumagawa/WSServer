@@ -18,6 +18,9 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 	private final Integer MAX_TEXTSIZE = 2048; // メッセージ最大文字数
 	private Connection connection;
 	private String sessionId;
+	
+	private static String CMD_SESSIONID = "SESSIONID";
+	private static String CMD_WIFICONFIG = "WIFICONFIG";
 
 	/**
 	 * コンストラクタ
@@ -45,7 +48,11 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 	public void onOpen(Connection connection) {
 		try {
 			this.setConnection(connection);
-			this.getConnection().sendMessage(this.sessionId);
+
+			Message mes = new Message(CMD_SESSIONID, this.sessionId);
+			Gson gson = new Gson();
+			this.getConnection().sendMessage(gson.toJson(mes));
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -69,7 +76,7 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 		logger.info("message:" + data);
 		try {
 			Gson gson = new Gson();
-			MyMessage mm = gson.fromJson(data, MyMessage.class);
+			RecMessage mm = gson.fromJson(data, RecMessage.class);
 			if (mm.getTarget().equals("all")) {
 				sendAllMessage(mm);
 			} else {
@@ -85,12 +92,15 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 	 * メッセージ送信（個別）
 	 * @param mm
 	 */
-	public void sendMessage(MyMessage mm) {
+	public void sendMessage(RecMessage mm) {
 		// Connection存在確認
 		if (MyWebSocketServlet.getSocketQueue().containsKey(mm.getTarget())) {
 			try {
-				Connection cpnnection = MyWebSocketServlet.getSocketQueue().get(mm.getTarget()).getConnection();
-				cpnnection.sendMessage(mm.getMessage());
+				Connection conection = MyWebSocketServlet.getSocketQueue().get(mm.getTarget()).getConnection();
+				Message mes = new Message(CMD_WIFICONFIG, mm.getMessage());
+				Gson gson = new Gson();
+				conection.sendMessage(gson.toJson(mes));
+
 			} catch (IOException e) {
 				MyWebSocketServlet.getSocketQueue().remove(mm.getTarget());
 				e.printStackTrace();
@@ -108,10 +118,14 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 	 * メッセージ送信（全体）
 	 * @param mm
 	 */
-	public void sendAllMessage(MyMessage mm) {
+	public void sendAllMessage(RecMessage mm) {
+		Message mes = new Message(CMD_WIFICONFIG, mm.getMessage());
+		Gson gson = new Gson();
+		String str = gson.toJson(mes);
+		
 		for (Map.Entry<String, MyWebSocket> mws : MyWebSocketServlet.getSocketQueue().entrySet()) {
 			try {
-				mws.getValue().getConnection().sendMessage(mm.getMessage()); // メッセージ配信
+				mws.getValue().getConnection().sendMessage(str); // メッセージ配信
 			} catch (IOException e) {
 				MyWebSocketServlet.getSocketQueue().remove(mws.getKey()); //
 				e.printStackTrace();
