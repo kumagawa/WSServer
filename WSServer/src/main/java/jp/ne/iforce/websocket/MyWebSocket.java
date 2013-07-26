@@ -27,14 +27,24 @@ public class MyWebSocket implements WebSocket.OnTextMessage {
 	 * @param sessionId
 	 */
 	public MyWebSocket(String sessionId) {
+		
+		//割り当てられたIDを保持し、クライアント接続リストに追加
 		this.sessionId = sessionId;
 		MyWebSocketServlet.addSocketQueue(sessionId, this);
 	}
 
+	/**
+	 * Connection getter
+	 * @return
+	 */
 	public Connection getConnection() {
 		return connection;
 	}
 
+	/**
+	 * Connection setter
+	 * @return
+	 */
 	public void setConnection(Connection connection) {
 		connection.setMaxIdleTime(IDLE_TIME);
 		connection.setMaxTextMessageSize(MAX_TEXTSIZE);

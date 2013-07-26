@@ -20,20 +20,23 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	 */
 	@Override
 	public WebSocket doWebSocketConnect(HttpServletRequest request, String string) {
-		//return new MyWebSocket(request.getSession().getId());
-		String session;
+
+		//接続を識別するための重複のないIDを生成（ランダム数字4桁）
+		//request.getSession().getId()でもOKかと。
+
+		String sessionId;
 		while(true){
-			session = RandomStringUtils.randomNumeric(4);
-			if (!MyWebSocketServlet.getSocketQueue().containsKey(session)) {
+			sessionId = RandomStringUtils.randomNumeric(4);
+			if (!MyWebSocketServlet.getSocketQueue().containsKey(sessionId)) {
 				break;
 			}
 		}
-		return new MyWebSocket(session);
+		return new MyWebSocket(sessionId);
 	}
 
 	/**
 	 * ConcurrentLinkedQueue getter
-	 * 
+	 *
 	 * @return
 	 */
 	public static Map<String, MyWebSocket> getSocketQueue() {
@@ -42,7 +45,7 @@ public class MyWebSocketServlet extends WebSocketServlet {
 
 	/**
 	 * ConcurrentLinkedQueue setter
-	 * 
+	 *
 	 * @param socketQueue
 	 */
 	public static void setSocketQueue(Map<String, MyWebSocket> socketQueue) {
@@ -50,8 +53,8 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	}
 
 	/**
-	 * ソケットリスト追加
-	 * 
+	 * クライアント接続リスト追加
+	 *
 	 * @param myWebSocket
 	 */
 	public static void addSocketQueue(String key, MyWebSocket myWebSocket) {
@@ -59,8 +62,8 @@ public class MyWebSocketServlet extends WebSocketServlet {
 	}
 
 	/**
-	 * ソケットリスト削除
-	 * 
+	 * クライアント接続リスト削除
+	 *
 	 * @param myWebSocket
 	 */
 	public static void removeSocketQueue(String key) {
